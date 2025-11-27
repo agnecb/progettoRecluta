@@ -1,0 +1,115 @@
+import Sidebar from "@/components/organisms/Sidebar";
+import AuthSidebar from "@/components/organisms/AuthSidebar";
+import Link from "next/link";
+import PostCard from "@/components/molecules/PostCard";
+import { Separator } from "@/components/ui/separator";
+import CommentCard from "@/components/molecules/CommentCard";
+
+const MOCK_LOGGED = true;
+
+interface PageProps {
+    params: { id: string };
+}
+
+/* pagina del singolo post */
+export default async function PostPage({ params }: PageProps) {
+    const isLogged = MOCK_LOGGED;
+    const postId = params.id;
+
+    // ------ MOCK POST ------
+    const mockPost = {
+        id: postId,
+        user_id: "MarioRossi",
+        content: "Questo è un post di esempio **in markdown**\n- punto uno\n- punto due",
+        created_at: "2025-11-17T14:59:00Z",
+        likes: 12,
+        comments: 2,
+    };
+    // ------ MOCK COMMENTI ------
+    const mockComments = [
+        {
+            id: "c1",
+            user_id: "Giulia",
+            content: "Bellissimo post!",
+            created_at: "2025-11-17T15:10:00Z",
+        },
+        {
+            id: "c2",
+            user_id: "Luca",
+            content: "Sono d'accordo con te!",
+            created_at: "2025-11-17T15:20:00Z",
+        }
+    ];
+
+    return (
+        <div className="container max-w-5xl mx-auto min-h-screen">
+            <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen text-foreground bg-background">
+
+
+                <div className="hidden md:block w-72">
+                    <>
+                        {isLogged ? <Sidebar /> : <AuthSidebar />}
+                    </>
+                </div>
+                {/* MAIN SECTION */}
+                <div className="min-h-screen py-6">
+                    <div className="container mx-4 max-w-5xl w-full">
+
+                        {/* TITOLO PAGINA + FRECCIA */}
+                        <div className="flex items-center gap-2 mb-4">
+                            <Link href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left h-5 w-5 mx-2" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg></Link>
+                            <h2 className="font-bold text-2xl">Post</h2>
+                        </div>
+
+
+                        {/* ------ POST ------ */}
+                        <PostCard
+                            id={mockPost.id}
+                            user_id={mockPost.user_id}
+                            content={mockPost.content}
+                            created_at={mockPost.created_at}
+                            likes={mockPost.likes}
+                            comments={mockPost.comments}
+                        />
+
+                        {/* LINEA ORIZZONTALE */}
+                        <Separator className="mb-2 bg-gray-400/20" />
+
+                        {/* ------ FORM AGGIUNGI COMMENTO ------ */}
+                        <div className="px-0">
+                            <textarea
+                                className="w-full p-3 mb-2 mt-3 border rounded-sm bg-background border-gray-400/20 text-grey-400 text-sm focus:outline-none focus:ring focus:ring-primary/30"
+                                placeholder="Scrivi un commento..."
+                                rows={3}
+                            />
+
+                            <div className="w-full flex justify-end">
+                                <button className="mt-2 mb-5 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm">
+                                    Commenta
+                                </button>
+                            </div>
+                        </div>
+
+
+
+                        {/* ------ LISTA COMMENTI ------ */}
+                        <div className="flex flex-col gap-4">
+                            {mockComments.map((c) => (
+                                <div key={c.id} className="pb-2">
+                                    <CommentCard
+                                        id={c.id}
+                                        user_id={c.user_id}
+                                        content={c.content}
+                                        created_at={c.created_at}
+                                        likes={0}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
