@@ -1,112 +1,356 @@
-import Sidebar from "@/components/organisms/Sidebar";
-import AuthSidebar from "@/components/organisms/AuthSidebar";
-import Link from "next/link";
-import PostCard from "@/components/molecules/PostCard";
-import { Separator } from "@/components/ui/separator";
-import CommentCard from "@/components/molecules/CommentCard";
+// pulsante cestino
 
-const MOCK_LOGGED = true;
+<div class="absolute top-3 right-3"><button class="p-2 text-muted-foreground hover:text-destructive transition-colors rounded-full hover:bg-muted" title="Elimina post"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2 lucide-trash-2" aria-hidden="true"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></div>
 
-interface PageProps {
-    params: { id: string };
-}
 
-/* pagina del singolo post */
-export default async function PostPage({ params }: PageProps) {
-    const isLogged = MOCK_LOGGED;
-    const postId = params.id;
+// pulsante modifica
+<button class="ml-auto text-sm text-muted-foreground hover:text-primary transition-colors" aria-label="Modifica"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pen" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path></svg></button>
 
-    // ------ MOCK POST ------
-    const mockPost = {
-        id: postId,
-        user_id: "MarioRossi",
-        content: "Questo è un post di esempio **in markdown**\n- punto uno\n- punto due",
-        created_at: "2025-11-17T14:59:00Z",
-        likes: 12,
-        comments: 2,
-    };
-    // ------ MOCK COMMENTI ------
-    const mockComments = [
-        {
-            id: "c1",
-            user_id: "Giulia",
-            content: "Bellissimo post!",
-            created_at: "2025-11-17T15:10:00Z",
-        },
-        {
-            id: "c2",
-            user_id: "Luca",
-            content: "Sono d'accordo con te!",
-            created_at: "2025-11-17T15:20:00Z",
-        }
-    ];
 
+
+// SignUpCard
+
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+export default function SignUpCard() {
     return (
-        <div className="container max-w-5xl mx-auto min-h-screen">
-            <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen text-foreground bg-background">
+        <Card className="w-full max-w-md bg-card text-card-foreground border-gray-300/20">
+            <CardHeader className="text-center">
+                <CardTitle className="font-bold text-2xl">Crea un account</CardTitle>
+                <CardDescription className="py-0">
+                    Inserisci i tuoi dati per registrarti
+                </CardDescription>
+            </CardHeader>
 
-
-                <div className="hidden md:block w-72">
-                    <>
-                        {isLogged ? <Sidebar /> : <AuthSidebar />}
-                    </>
-                </div>
-                {/* MAIN SECTION */}
-                <div className="min-h-screen py-6">
-                    <div className="container mx-4 max-w-5xl w-full">
-
-                        {/* TITOLO PAGINA + FRECCIA */}
-                        <div className="flex items-center gap-2 mb-4">
-                            <Link href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left h-5 w-5 mx-2" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg></Link>
-                            <h2 className="font-bold text-2xl">Post</h2>
+            <CardContent>
+                <form>
+                    <div className="flex flex-col gap-6">
+                        <div className="grid gap-2">
+                            <Label htmlFor="username">Username</Label>
+                            <Input id="username" type="text" placeholder="username" className="bg-background border-gray-300/20" required />
                         </div>
 
-
-                        {/* ------ POST ------ */}
-                        <PostCard
-                            id={mockPost.id}
-                            user_id={mockPost.user_id}
-                            content={mockPost.content}
-                            created_at={mockPost.created_at}
-                            likes={mockPost.likes}
-                            comments={mockPost.comments}
-                        />
-
-                        {/* LINEA ORIZZONTALE */}
-                        <Separator className="my-4 bg-gray-400/20" />
-
-                        {/* ------ FORM AGGIUNGI COMMENTO ------ */}
-                        <textarea
-                            className="w-full p-3 m-5 border rounded-sm bg-background border-gray-400/20 text-sm focus:outline-none focus:ring focus:ring-primary/30"
-                            placeholder="Scrivi un commento..."
-                            rows={3}
-                        ></textarea>
-
-                        <div className="w-full flex justify-end">
-                            <button className="mt-2 mb-5 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm">
-                                Commenta
-                            </button>
+                        <div className="grid gap-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" type="email" placeholder="nome@esempio.com" className="bg-background border-gray-300/20" required />
                         </div>
 
+                        <div className="grid gap-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input id="password" type="password" placeholder="••••••••" className="bg-background border-gray-300/20" required />
+                        </div>
 
-                        {/* ------ LISTA COMMENTI ------ */}
-                        <div className="flex flex-col gap-4">
-                            {mockComments.map((c) => (
-                                <div key={c.id} className="pb-2">
-                                    <CommentCard
-                                        id={c.id}
-                                        user_id={c.user_id}
-                                        content={c.content}
-                                        created_at={c.created_at}
-                                        likes={0}
-                                    />
-                                </div>
-                            ))}
+                        <div className="grid gap-2">
+                            <Label htmlFor="confirm">Conferma Password</Label>
+                            <Input id="confirm" type="password" placeholder="••••••••" className="bg-background border-gray-300/20" minLength={8} required />
                         </div>
 
                     </div>
+                </form>
+            </CardContent>
+
+            <CardFooter className="flex-col gap-2">
+                <Button type="submit" className="w-full rounded-3xl bg-blue-500 hover:bg-blue-600">
+                    Crea account
+                </Button>
+
+                <div className="text-center">
+                    <CardDescription className="py-0">
+                        Hai già un account?
+                        <a href="/login"
+                            className="px-1 inline-block text-sm underline-offset-4 hover:underline font-bold text-blue-500"
+                        >
+                            Accedi
+                        </a>
+                    </CardDescription>
                 </div>
+            </CardFooter>
+        </Card>
+    );
+}
+
+
+// LoginCard
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+export default function LoginCard() {
+  return (
+    <Card className="w-full max-w-md bg-card text-card-foreground border-gray-300/20">
+      <CardHeader className="text-center">
+        <CardTitle className="font-bold text-2xl">Accedi</CardTitle>
+        <CardDescription className="py-0">
+          Inserisci le tue credenziali per accedere
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        <form>
+          <div className="flex flex-col gap-6">
+            <div className="grid gap-2">
+              <Label htmlFor="username">Username</Label>
+              <Input id="username" type="text" placeholder="username" className="bg-background  border-gray-300/20" required />
             </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" placeholder="••••••••" className="bg-background  border-gray-300/20" required />
+            </div>
+          </div>
+        </form>
+      </CardContent>
+
+      <CardFooter className="flex-col gap-2">
+        <Button type="submit" className="w-full rounded-3xl bg-blue-500 hover:bg-blue-600">
+          Continua
+        </Button>
+
+        <div className="text-center">
+          <CardDescription className="py-0">
+            Non hai un account?
+            <a href="/signup"
+              className="px-1 inline-block text-sm underline-offset-4 hover:underline font-bold text-blue-500"
+            >
+              Registrati
+            </a>
+          </CardDescription>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+}
+
+
+// likesimport Sidebar from "@/components/organisms/Sidebar";
+import PostCard from "@/components/molecules/PostCard";
+
+// dati di mock
+interface Like {
+  id: string;
+  username: string;
+  avatar?: string; // opzionale, se vuoi mostrare iniziale o immagine
+}
+
+interface PostWithLikes {
+  id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  likes: Like[];
+  comments?: number;
+}
+
+const mockLikes: PostWithLikes[] = [
+  {
+    id: "1",
+    user_id: "recluta",
+    content: "Buonaseeera _prova_",
+    created_at: "2025-11-27T18:43:22.125Z",
+    likes: [
+      { id: "u1", username: "Utente" },
+      { id: "u2", username: "Utente" },
+    ],
+    comments: 3,
+  },
+  {
+    id: "2",
+    user_id: "recluta",
+    content: "Altro post di prova",
+    created_at: "2025-11-27T19:00:00.000Z",
+    likes: [{ id: "u3", username: "Utente" }],
+    comments: 1,
+  },
+];
+
+export default function LikesPage() {
+  return (
+    <div className="container max-w-5xl mx-auto min-h-screen">
+      <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen text-foreground bg-background">
+
+        <div className="hidden md:block w-72">
+          <Sidebar />
+        </div>
+
+        <div className="min-h-screen py-6">
+          <div className="container mx-0">
+            <h2 className="font-bold text-2xl mb-6 mx-4">I tuoi Mi piace</h2>
+
+            {mockLikes.length === 0 ? (
+              <div className="flex flex-col flex-1 justify-center items-center text-center mt-6">
+                <p className="text-xl my-2 text-gray-400">Ancora nessun like ricevuto </p>
+                <p className="text-sm mb-2 text-gray-400">I like che ricevi ai tuoi post appariranno qui.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-6 max-w-2xl mx-auto">
+                {mockLikes.map((post) => {
+                  const userNames = post.likes.map((l) => l.username);
+                  const text =
+                    userNames.length === 1
+                      ? `${userNames[0]} ha messo mi piace al tuo post`
+                      : `${userNames.slice(0, -1).join(", ")} e ${userNames.slice(-1)} hanno messo mi piace al tuo post`;
+
+                  return (
+                    <div key={post.id} className="flex flex-col gap-3">
+                      {/* Notifica like */}
+                      <div className="mb-1 p-4 bg-card/50 rounded-lg border border-gray-400/20 flex items-center gap-3">
+                        <div className="flex -space-x-2">
+                          {post.likes.map((l) => (
+                            <div
+                              key={l.id}
+                              className="w-8 h-8 bg-blue-700/20 rounded-full flex items-center justify-center text-xs font-medium border-2 border-background"
+                              title={l.username}
+                            >
+                              {l.avatar ?? l.username.charAt(0).toUpperCase()}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{text}</p>
+                          <p className="text-xs text-gray-400 mt-1">{post.likes.length} mi piace totale</p>
+                        </div>
+                      </div>
+
+                      {/* Post */}
+                      <div className="border-b border-gray-400/20">
+                        <PostCard
+                          id={post.id}
+                          user_id={post.user_id}
+                          content={post.content}
+                          created_at={post.created_at}
+                          likes={post.likes.length}
+                          comments={post.comments}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// organismo --> ProfileTabs
+"use client";
+
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import PostCard from "@/components/molecules/PostCard";
+import { useState } from "react";
+import CommentCard from "../molecules/CommentCard";
+
+interface Post {
+    id: string;
+    user_id: string;
+    content: string;
+    created_at: string;
+    likes?: number;
+    comments?: number;
+}
+
+interface ProfileTabsProps {
+    posts: Post[];
+    comments: Post[];
+    likes: Post[];
+}
+
+export default function ProfileTabs({ posts, comments, likes }: ProfileTabsProps) {
+    const [activeTab, setActiveTab] = useState<"posts" | "comments" | "likes">("posts");
+
+    return (
+        <div className="w-full mt-4">
+
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "posts" | "comments" | "likes")}>
+                {/* HEADER TABS */}
+                <TabsList className="w-full grid grid-cols-3 bg-background border-b border-muted-foreground/20 rounded-md p-1 text-muted-foreground">
+                    <TabsTrigger
+                        value="posts"
+                        className="text-sm font-medium w-full 
+                                    data-[state=active]:text-foreground 
+                                    data-[state=inactive]:text-gray-400">
+                        Post ({posts.length})
+                    </TabsTrigger>
+
+                    <TabsTrigger
+                        value="comments"
+                        className="text-sm font-medium w-full 
+                                    data-[state=active]:text-foreground 
+                                    data-[state=inactive]:text-gray-400">
+                        Commenti ({comments.length})
+                    </TabsTrigger>
+
+                    <TabsTrigger
+                        value="likes"
+                        className="text-sm font-medium w-full 
+                                    data-[state=active]:text-foreground 
+                                    data-[state=inactive]:text-gray-400">
+                        Mi piace ({likes.length})
+                    </TabsTrigger>
+                </TabsList>
+
+
+                {/* POSTS */}
+                <TabsContent value="posts" className="mt-0">
+                    {posts.length === 0 ? (
+                        <div className="flex flex-col flex-1 justify-center items-center text-center">
+                            <p className="text-sm mb-2 text-gray-400">Non hai ancora pubblicato post.</p>
+                        </div>
+                    ) : (
+                        posts.map((p) => <div className="border-b border-gray-400/20"><PostCard key={p.id} {...p} /></div>)
+                    )}
+                </TabsContent>
+
+                {/* COMMENTS */}
+                <TabsContent value="comments" className="mt-0">
+                    {comments.length === 0 ? (
+                        <div className="flex flex-col flex-1 justify-center items-center text-center">
+                            <p className="text-xl my-2 text-gray-400">Ancora nessun commento </p>
+                            <p className="text-sm mb-2 text-gray-400">I commenti che pubblichi appariranno qui.</p>
+                        </div>
+                    ) : (
+                        comments.map((c) => <CommentCard key={c.id} {...c} />)
+                    )}
+                </TabsContent>
+
+                {/* LIKES */}
+                <TabsContent value="likes" className="space-y-4 mt-0">
+                    {likes.length === 0 ? (
+                        <div className="flex flex-col flex-1 justify-center items-center text-center mt-6">
+                            <p className="text-xl my-2 text-gray-400">Ancora nessun like </p>
+                            <p className="text-sm mb-2 text-gray-400">I post a cui metti mi piace appariranno qui.</p>
+                        </div>
+                    ) : (
+                        likes.map((l) => <PostCard key={l.id} {...l} />)
+                    )}
+                </TabsContent>
+
+            </Tabs>
         </div>
     );
 }

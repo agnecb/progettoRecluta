@@ -10,6 +10,7 @@ interface Post {
     created_at: string;
     likes?: number;
     comments?: number;
+    author: { id: string; username: string };
 }
 
 interface FeedProps {
@@ -29,7 +30,6 @@ export default function Feed({ posts }: FeedProps) {
                     {i < posts.length - 1 && <Separator className="my-0 bg-gray-400/20" />}
                 </div>
             ))}
-
         </div>
     );
 }

@@ -2,6 +2,8 @@
 
 import Sidebar from "@/components/organisms/Sidebar";
 import Feed from "@/components/organisms/Feed";
+import { useEffect, useState } from "react";
+import { getPosts } from "@/services/posts";
 
 // MOCK per test visivo
 const MOCK_POSTS = [
@@ -33,10 +35,29 @@ const MOCK_POSTS = [
 
 /* HOMEPAGE quando l'utente è loggato */
 export default function UserHomePage() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadPosts() {
+      try {
+        setLoading(true);
+        const data = await getPosts(); // leggi tutti i post
+        setPosts(data);
+      } catch (err: any) {
+        setError(err.message || "Errore nel caricamento dei post");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadPosts();
+  }, []);
   return (
     <div className="container max-w-5xl mx-auto min-h-screen">
       <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen text-foreground bg-background">
-        <div className="hidden md:block w-72">
+        <div className="hidden md:block h-full w-72">
           <Sidebar />
         </div>
 
@@ -45,7 +66,10 @@ export default function UserHomePage() {
             <h2 className="font-bold text-2xl pb-4 border-b border-gray-300/20">Il tuo Feed</h2>
 
             {/* Feed dei post */}
-            <Feed posts={MOCK_POSTS} />
+            {loading && <p className="text-center py-10 text-gray-400">Caricamento post...</p>}
+            {error && <p className="text-center py-10 text-red-500">{error}</p>}
+
+            {!loading && !error && <Feed posts={posts} />}
           </div>
         </div>
       </div>

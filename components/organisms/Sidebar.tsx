@@ -8,7 +8,7 @@ import Dashboard from "../molecules/Dashboard";
 
 export default function AuthSidebar() {
     return (
-        <div className="hidden md:flex max-w-sm flex-col justify-between min-h-screen p-6 border-r border-gray-300/20">
+        <div className="hidden md:flex max-w-sm flex-col justify-between h-full p-6 border-r border-gray-300/20">
 
             {/* Parte superiore: titolo + dati user + collegamenti */}
             <div>

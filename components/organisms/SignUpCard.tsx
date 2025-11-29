@@ -2,58 +2,83 @@
 
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
+    Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
-export default function SignUpCard() {
+export default function SignUpCard({ onSubmit }: { onSubmit: (data: any) => void }) {
+    const [form, setForm] = useState({
+        username: "",
+        email: "",
+        password: "",
+        confirm: "",
+    });
+
+    function handleSubmit(e: any) {
+        e.preventDefault();
+        onSubmit(form);
+    }
+
     return (
         <Card className="w-full max-w-md bg-card text-card-foreground border-gray-300/20">
             <CardHeader className="text-center">
                 <CardTitle className="font-bold text-2xl">Crea un account</CardTitle>
-                <CardDescription className="py-0">
-                    Inserisci i tuoi dati per registrarti
-                </CardDescription>
+                <CardDescription>Inserisci i tuoi dati per registrarti</CardDescription>
             </CardHeader>
 
             <CardContent>
-                <form>
-                    <div className="flex flex-col gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="username">Username</Label>
-                            <Input id="username" type="text" placeholder="username" className="bg-background border-gray-300/20" required />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="nome@esempio.com" className="bg-background border-gray-300/20" required />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
-                            <Input id="password" type="password" placeholder="••••••••" className="bg-background border-gray-300/20" required />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="confirm">Conferma Password</Label>
-                            <Input id="confirm" type="password" placeholder="••••••••" className="bg-background border-gray-300/20" required />
-                        </div>
-
+                <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                    <div className="grid gap-2">
+                        <Label>Username</Label>
+                        <Input id="username" type="text" placeholder="username" className="bg-background border-gray-300/20"
+                            value={form.username}
+                            onChange={(e) => setForm({ ...form, username: e.target.value })}
+                            required
+                        />
                     </div>
+
+                    <div className="grid gap-2">
+                        <Label>Email</Label>
+                        <Input id="email" type="email" placeholder="nome@esempio.com" className="bg-background border-gray-300/20"
+                            value={form.email}
+                            onChange={(e) => setForm({ ...form, email: e.target.value })}
+                            required
+                        />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label>Password</Label>
+                        <Input id="password" type="password" placeholder="••••••••" className="bg-background border-gray-300/20"  
+                            value={form.password}
+                            minLength={8}
+                            onChange={(e) =>
+                                setForm({ ...form, password: e.target.value })
+                            }
+                            required
+                        />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label>Conferma Password</Label>
+                        <Input id="password" type="password" placeholder="••••••••" className="bg-background border-gray-300/20"  
+                            minLength={8}
+                            value={form.confirm}
+                            onChange={(e) =>
+                                setForm({ ...form, confirm: e.target.value })
+                            }
+                            required
+                        />
+                    </div>
+
+                    <Button type="submit" className="w-full rounded-3xl bg-blue-500 hover:bg-blue-600">
+                        Crea account
+                    </Button>
                 </form>
             </CardContent>
 
             <CardFooter className="flex-col gap-2">
-                <Button type="submit" className="w-full rounded-3xl bg-blue-500 hover:bg-blue-600">
-                    Crea account
-                </Button>
-
                 <div className="text-center">
                     <CardDescription className="py-0">
                         Hai già un account?

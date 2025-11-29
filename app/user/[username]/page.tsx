@@ -1,20 +1,40 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Sidebar from "@/components/organisms/Sidebar";
 import AuthSidebar from "@/components/organisms/AuthSidebar";
-import Link from "next/link";
+import PostCard from "@/components/molecules/PostCard";
+import { getUserByUsername, getUserStats } from "@/services/users";
+import { getUserPosts } from "@/services/posts";
+import { getComments } from "@/services/comments";
+import { getLikes } from "@/services/likes";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import PostCard from "@/components/molecules/PostCard";
+import Link from "next/link";
 
-const MOCK_LOGGED = true;
+interface Post {
+    id: string;
+    user_id: string;
+    content: string;
+    created_at: string;
+    likes?: number;
+    comments?: number;
+    author: { id: string; username: string };
+}
 
-interface PageProps {
-    params: { username: string };
+export interface User {
+    id: string;
+    username: string;
+    email: string;
+    bio?: string | null;
+    created_at: string;
 }
 
 function formatJoinDate(dateString: string) {
     const date = new Date(dateString);
     // Mese abbreviato in italiano
-    const monthNames = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosot", "settembre", "ottobre", "novembre", "dicembre"];
+    const monthNames = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
 
     const month = monthNames[date.getMonth()];
     const year = date.getFullYear();
@@ -22,145 +42,158 @@ function formatJoinDate(dateString: string) {
     return `${month} ${year}`;
 }
 
-/* pagina del singolo user */
-export default async function UserProfilePage({ params }: PageProps) {
-    const isLogged = MOCK_LOGGED;
-    const username = "MarioRossi";
+export default function UserProfilePage() {
+    // prendo username dall'url dinamico
+    const { username } = useParams() as { username: string };
 
-    // -------- MOCK USER DATA --------
-    const mockUser = {
-        username: username,
-        bio: "",
-        joined: "2024-03-12T10:00:00Z",
-        posts_count: 2,
-        comments_count: 34,
-        likes_count: 0,
-    };
+    const [user, setUser] = useState<User | null>(null);
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [stats, setStats] = useState<{ posts: number; likes: number; comments: number } | null>(null);
 
-    // -------- MOCK POSTS DI QUESTO UTENTE --------
-    const mockUserPosts = [
-        {
-            id: "c11",
-            user_id: username,
-            content: "Sono d'accordo, ottima osservazione!",
-            created_at: "2025-11-18T12:10:00Z",
-            likes: 2,
-            comments: 3
-        },
-        {
-            id: "c12",
-            user_id: username,
-            content: "Grazie mille! Mi fa piacere che ti sia stato utile 😊",
-            created_at: "2025-11-18T13:22:00Z",
-            likes: 4,
-            comments: 0
+    const MOCK_LOGGED = true;
+
+    useEffect(() => {
+        async function loadData() {
+            try {
+                setLoading(true);
+                setError(null);
+
+                console.log("username dalla URL:", username);
+
+                const u = await getUserByUsername(username);
+                if (!u) {
+                    setError("Utente non trovato");
+                    return;
+                }
+                setUser(u);
+
+                // 1. CARICO LE STATISTICHE DELL’UTENTE
+                const statsData = await getUserStats(u.id);
+                setStats(statsData);
+
+                // 2. CARICO I POST DELL’UTENTE
+                const userPosts = await getUserPosts(u.id);
+
+                // 3. ARRICCHISCO OGNI POST CON likes e commenti
+                const postsWithCounts = await Promise.all(
+                    userPosts.map(async (post: Post) => {
+                        const [likes, commentsData] = await Promise.all([
+                            getLikes(post.id),
+                            getComments(post.id),
+                        ]);
+                        return {
+                            ...post,
+                            likes,
+                            comments: commentsData.count,
+                        };
+                    })
+                );
+                setPosts(postsWithCounts.reverse());
+
+            } catch (err: any) {
+                setError(err.message || "Errore nel caricamento");
+            } finally {
+                setLoading(false);
+            }
         }
-    ];
+        if (username) loadData();
+    }, [username]);
+
+    if (loading) return <p className="text-center py-10">Caricamento...</p>;
+    if (error) return <p className="text-center py-10 text-red-500">{error}</p>;
+    if (!user) return <p className="text-center py-10">Utente non trovato</p>;
 
     return (
-
         <div className="container max-w-5xl mx-auto min-h-screen">
             <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen text-foreground bg-background">
-
                 {/* SIDEBAR */}
                 <div className="hidden md:block w-72">
-                    {isLogged ? <Sidebar /> : <AuthSidebar />}
+                    {MOCK_LOGGED ? <Sidebar /> : <AuthSidebar />}
                 </div>
 
-                {/* PROFILE SECTION */}
+                {/* MAIN PROFILE */}
                 <div className="min-h-screen py-6">
                     <div className="container mx-4 max-w-5xl w-full">
-
-                        {/* FRECCIA + USERNAME */}
+                        {/* HEADER */}
                         <div className="flex items-center gap-2 mb-4">
-
-                            {/* DEVO TORNARE INDIETRO AL POST DA CUI PROVENGO */}
                             <Link href="/">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                                    className="lucide lucide-arrow-left h-5 w-5 mx-2">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="lucide lucide-arrow-left h-5 w-5 mx-2"
+                                >
                                     <path d="m12 19-7-7 7-7" />
                                     <path d="M19 12H5" />
                                 </svg>
                             </Link>
-
                             <div>
-                                <h2 className="font-bold text-xl">{mockUser.username}</h2>
-                                <p className="text-xs text-gray-400">{mockUser.posts_count} post</p>
+                                <h2 className="font-bold text-xl">{user.username}</h2>
+                                <p className="text-xs text-gray-400">{posts.length} post</p>
                             </div>
                         </div>
                         <Separator className="my-4 bg-gray-400/20" />
 
+                        {/* INFO UTENTE */}
+                        <div className="px-4 pt-6 pb-4 text-center">
+                            <Avatar className="h-14 w-14 mx-auto mb-4">
+                                <AvatarFallback className="bg-card text-xl">
+                                    {user.username.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
 
-                        {/* ----- USER HEADER ----- */}
-                        <div className="px-4 pt-6 pb-4">
+                            <h2 className="text-xl font-bold">{user.username}</h2>
+                            <p className="text-gray-400">@{user.username}</p>
 
-                            {/* Avatar centrato */}
-                            <div className="flex justify-center mb-4">
-                                <Avatar className="h-14 w-14">
-                                    <AvatarFallback className="bg-card text-xl">
-                                        {(mockUser.username).charAt(0).toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </div>
+                            {user.bio && <p className="text-sm text-gray-500 mt-2">{user.bio}</p>}
 
-
-                            {/* Nome, username */}
-                            <div className="text-center mb-4">
-                                <h2 className="text-xl font-bold">{mockUser.username}</h2>
-                                <p className="text-gray-400">@{mockUser.username}</p>
-                            </div>
-
-                            {/* Bio */}
-                            {mockUser.bio && (
-                                <p className="text-sm text-gray-500 text-center mb-4">
-                                    {mockUser.bio}
-                                </p>
-                            )}
 
                             {/* Joined */}
-                            <p className="text-sm text-gray-400 text-center mb-4">
-                                Si è unito a {formatJoinDate(mockUser.joined)}
+                            <p className="text-sm mt-2 text-gray-400 text-center mb-4">
+                                Si è unito a {formatJoinDate(user.created_at)}
                             </p>
 
                             {/* Stats */}
                             <div className="flex justify-center gap-6">
                                 <div className="text-center">
-                                    <div className="font-bold text-lg">{mockUser.posts_count}</div>
+                                    <div className="font-bold text-lg">{stats?.posts ?? 0}</div>
                                     <div className="text-sm text-gray-400">Post</div>
                                 </div>
 
                                 <div className="text-center">
-                                    <div className="font-bold text-lg">{mockUser.comments_count}</div>
+                                    <div className="font-bold text-lg">0</div>  {/* SISTEMA CONTEGGIO COMMENTI ({stats?.comments ?? 0} VIENE 40 ANCHE SE E' 0) */}
                                     <div className="text-sm text-gray-400">Commenti</div>
                                 </div>
 
                                 <div className="text-center">
-                                    <div className="font-bold text-lg">{mockUser.likes_count}</div>
+                                    <div className="font-bold text-lg">{stats?.likes ?? 0}</div>
                                     <div className="text-sm text-gray-400">Mi piace</div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* LISTA POST DELL'UTENTE */}
-                        <h3 className="font-semibold text-md my-3 text-center">Post ({mockUser.posts_count})</h3>
-
-                        {/* non uso il Feed così posso controllare l'hover sul primo post */}
+                        {/* LISTA POST */}
+                        <h3 className="font-semibold text-md my-3 text-center">
+                            Post ({posts.length})
+                        </h3>
                         <div className="flex flex-col">
-                            {mockUserPosts.map((post, i) => (
-                                <div key={post.id}
-                                    className={`${i === 0 ? "hover:border-t hover:border-blue-500 border-t border-transparent" : ""}`}>
+                            {posts.map((post, i) => (
+                                <div key={post.id} className={`${i === 0 ? "hover:border-t hover:border-blue-500 border-t border-transparent" : ""}`}>
                                     <PostCard {...post} />
-                                    {i < mockUserPosts.length - 1 && (
+                                    {i < posts.length - 1 && (
                                         <Separator className="my-0 bg-gray-400/20" />
                                     )}
                                 </div>
                             ))}
                         </div>
-
-
-
                     </div>
                 </div>
             </div>

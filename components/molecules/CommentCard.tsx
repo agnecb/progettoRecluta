@@ -3,13 +3,17 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const MOCK_LOGGED = true;
 
-
 interface CommentCardProps {
     id: string;
     user_id: string;
+    post_id: string,
     content: string;
     created_at: string;
-    likes?: number;
+    likes?: number,
+    author: {
+        id: string;
+        username: string;
+    };
 }
 
 function formatDate(dateString: string) {
@@ -24,7 +28,7 @@ function formatMarkdown(text: string) {
         .replace(/_(.*?)_/g, '<em>$1</em>');
 }
 
-export default function CommentCard({ user_id, content, created_at, likes = 0 }: CommentCardProps) {
+export default function CommentCard({ user_id, content, created_at, likes=0, author }: CommentCardProps) {
     const isLogged = MOCK_LOGGED;
 
     return (
@@ -33,7 +37,7 @@ export default function CommentCard({ user_id, content, created_at, likes = 0 }:
             {/* Avatar */}
             <Avatar>
                 <AvatarFallback className="bg-card">
-                    {user_id.charAt(0).toUpperCase()}
+                    {author.username.charAt(0).toUpperCase()}
                 </AvatarFallback>
             </Avatar>
 
@@ -42,7 +46,7 @@ export default function CommentCard({ user_id, content, created_at, likes = 0 }:
 
                 {/* Top row: username + date */}
                 <div className="flex items-center gap-2 text-sm">
-                    <span className="font-semibold">@{user_id}</span>
+                    <span className="font-semibold">@{author.username}</span>
                     <span className="text-gray-400 text-xs">{formatDate(created_at)}</span>
                 </div>
 
@@ -72,7 +76,7 @@ export default function CommentCard({ user_id, content, created_at, likes = 0 }:
                         >
                             <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path>
                         </svg>
-                        {isLogged && (<span className="group-hover:text-red-600 text-xs">{likes}</span>)}
+                        {isLogged && (<span className="group-hover:text-red-600 text-xs">0</span>)} {/* conteggio likes!! */}
                     </button>
                 </footer>
 
