@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator"
-import DashboardHome from "../molecules/Dashboard";
 import Dashboard from "../molecules/Dashboard";
+import { useAuth } from "@/context/AuthContext";
 
-export default function AuthSidebar() {
+export default function Sidebar() {
+    const { user, logout } = useAuth(); // <-- prendi user e logout dal contesto
+
     return (
         <div className="hidden md:flex max-w-sm flex-col justify-between h-full p-6 border-r border-gray-300/20">
 
@@ -16,8 +17,8 @@ export default function AuthSidebar() {
 
                 {/* Dati user */}
                 <div className="flex flex-col py-5 border-b border-gray-300/20">
-                    <span className="font-semibold">@recluta</span>
-                    <span className="text-sm text-gray-400">recluta@gmail.com</span>
+                    <span className="font-semibold">@{user?.username}</span>
+                    <span className="text-sm text-gray-400">{user?.email}</span>
                 </div>
 
 
@@ -46,16 +47,16 @@ export default function AuthSidebar() {
                     </Link>
                 </div>
 
-                <Dashboard/>
+                <Dashboard />
             </div>
 
 
             {/* Parte inferiore: Esci */}
             <div className="flex flex-col gap-2">
-                <a href="#" className="text-sm flex px-0 underline-offset-4 hover:underline text-blue-500">
+                <button onClick={logout} className="text-sm flex px-0 underline-offset-4 hover:underline text-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-log-out h-5 w-5 mr-2" aria-hidden="true"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                     </svg>Esci
-                </a>
+                </button>
             </div>
         </div>
     );

@@ -8,11 +8,13 @@ import PostCard from "@/components/molecules/PostCard";
 import { Separator } from "@/components/ui/separator";
 import CommentCard from "@/components/molecules/CommentCard";
 import { getPost } from "@/services/posts";
-import { getComments } from "@/services/comments";
+import { createComment, getComments } from "@/services/comments";
 import { getLikes } from "@/services/likes";
 import { useParams } from "next/navigation";
-
-const MOCK_LOGGED = true;
+import { useAuth } from "@/context/AuthContext";
+import MobileDashboard from "@/components/molecules/MobileDashboard";
+import MobileAuthTopBar from "@/components/molecules/MobileAuthTopBar";
+import MobileAuthBottomBar from "@/components/molecules/MobileAuthBottomBar";
 
 interface Comment {
     id: string;
@@ -37,6 +39,7 @@ interface Post {
 
 export default function PostPage() {
     const { id } = useParams() as { id: string };
+    const { isAuthenticated } = useAuth();
 
     const [post, setPost] = useState<Post | null>(null);
     const [comments, setComments] = useState<Comment[]>([]);
@@ -45,7 +48,9 @@ export default function PostPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const isLogged = MOCK_LOGGED;
+    const [newComment, setNewComment] = useState("");
+    const { user } = useAuth(); // serve user.id che aggiunge il commento
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         async function loadPost() {
@@ -72,7 +77,7 @@ export default function PostPage() {
                     getComments(id),
                 ]);
 
-                setLikes(likesData.count);
+                setLikes(likesData);
                 setComments(commentsData.items.reverse() || []);
                 setCommentsCount(commentsData.count);
             } catch (err: any) {
@@ -84,19 +89,61 @@ export default function PostPage() {
 
         loadPost();
     }, [id]);
-
-
     if (loading) return <p className="text-center py-10">Caricamento...</p>;
     if (error) return <p className="text-center py-10 text-red-500">{error}</p>;
     if (!post) return <p className="text-center py-10">Post non trovato</p>;
 
+    async function handleAddComment() {
+        if (!newComment.trim()) return;
+
+        try {
+            setSubmitting(true);
+
+            const comment = await createComment(id, newComment.trim());
+
+            // Costruisci il commento come vuole il tuo CommentCard
+            const newItem = {
+                id: comment.id,
+                post_id: comment.post_id,
+                user_id: comment.user_id,
+                content: comment.content,
+                created_at: comment.created_at,
+                author: {
+                    id: user!.id,
+                    username: user!.username
+                }
+            };
+
+            // metti il commento in cima
+            setComments((prev) => [newItem, ...prev]);
+            setCommentsCount((prev) => prev + 1);
+
+            setNewComment("");
+        } catch (err) {
+            console.error("Errore creazione commento", err);
+        } finally {
+            setSubmitting(false);
+        }
+    }
+
+
     return (
-        <div className="container max-w-5xl mx-auto min-h-screen">
-            <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen text-foreground bg-background">
-                <div className="hidden md:block w-72">
-                    {isLogged ? <Sidebar /> : <AuthSidebar />}
+        <div className="container max-w-5xl mx-auto min-h-screen lg:pb-16">
+            <div className="md:hidden">
+                {user && <MobileDashboard />}
+                {!user && <MobileAuthTopBar />}
+                {!user && <MobileAuthBottomBar />}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen">
+
+                {/* A SINISTRA: sidebar dinamica */}
+                <div className="hidden md:block w-72 h-full">
+                    {user ? <Sidebar /> : <AuthSidebar />}
                 </div>
-                <div className="min-h-screen py-6">
+
+
+                {/* CONTENUTO PRINCIPALE */}
+                <div className={`min-h-screen py-6 pb-20` + (!user ? " pt-20 md:pt-6" : "")}>
                     <div className="container mx-4 max-w-5xl w-full">
                         {/* TITOLO PAGINA + FRECCIA */}
                         <div className="flex items-center gap-2 mb-4">
@@ -123,13 +170,20 @@ export default function PostPage() {
                                 className="w-full p-3 mb-2 mt-3 border rounded-sm bg-background border-gray-400/20 text-grey-400 text-sm focus:outline-none focus:ring focus:ring-primary/30"
                                 placeholder="Scrivi un commento..."
                                 rows={3}
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
                             />
                             <div className="w-full flex justify-end">
-                                <button className="mt-2 mb-5 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm">
-                                    Commenta
+                                <button
+                                    onClick={handleAddComment}
+                                    disabled={submitting || newComment.trim().length === 0 || !isAuthenticated}
+                                    className="mt-2 mb-5 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:pointer-events-none text-white rounded-lg text-sm"
+                                >
+                                    {submitting ? "Invio..." : "Commenta"}
                                 </button>
                             </div>
                         </div>
+
 
                         {/* ------ LISTA COMMENTI ------ */}
                         <div className="flex flex-col gap-4">
@@ -157,6 +211,6 @@ export default function PostPage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

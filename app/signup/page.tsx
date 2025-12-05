@@ -4,52 +4,33 @@ import { useState } from "react";
 import AuthSidebar from "@/components/organisms/AuthSidebar";
 import SignUpCard from "@/components/organisms/SignUpCard";
 import OTPSignUpCard from "@/components/organisms/OTPSignUpCard";
+import { signup } from "@/services/auth";
 
 export default function SignUpPage() {
   const [step, setStep] = useState<"form" | "otp">("form");
   const [otpSecret, setOtpSecret] = useState("");
   const [qrUrl, setQrUrl] = useState("");
 
-  async function handleSignup(data: any) {
+  async function handleSignup(data: { username: string; email: string; password: string }) {
     try {
-      // 1) Registrazione utente
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: data.username,
-            email: data.email,
-            password: data.password,
-          }),
-        }
-      );
+      const res = await signup(data);
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Errore in registrazione");
+      // Salvo il token JWT per chiamate future
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("authToken", res.token);
       }
 
-      // 2) Genero OTP QR per l'utente appena creato
-      const otpRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/otp/setup`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      // Genero URL per QR code da otpauth://totp/...
+      const otpauth = `otpauth://totp/${encodeURIComponent(res.user.username)}?secret=${res.otp_secret}&issuer=JetOp`;
 
-      const otpJson = await otpRes.json();
+      setOtpSecret(res.otp_secret);
+      setQrUrl(otpauth);
 
-      setOtpSecret(otpJson.secret);
-      setQrUrl(otpJson.otpauth_url);
-
-      // passo allo step 2
+      // Passo allo step OTP
       setStep("otp");
-    } catch (error) {
-      console.error(error);
-      alert("Registrazione fallita");
+
+    } catch (error: any) {
+      alert(error.message || "Errore durante la registrazione");
     }
   }
 
@@ -62,10 +43,9 @@ export default function SignUpPage() {
           <AuthSidebar />
         </div>
 
-        {/* Form o OTP step */}
+        {/* Contenuto */}
         <div className="min-h-screen py-6 flex items-center justify-center">
           {step === "form" && <SignUpCard onSubmit={handleSignup} />}
-
           {step === "otp" && (
             <OTPSignUpCard
               otpSecret={otpSecret}

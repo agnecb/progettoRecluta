@@ -1,7 +1,6 @@
 "use client";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-const MOCK_LOGGED = true;
 
 interface CommentCardProps {
     id: string;
@@ -27,10 +26,7 @@ function formatMarkdown(text: string) {
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/_(.*?)_/g, '<em>$1</em>');
 }
-
-export default function CommentCard({ user_id, content, created_at, likes=0, author }: CommentCardProps) {
-    const isLogged = MOCK_LOGGED;
-
+export default function CommentCard({ user_id, content, created_at, likes = 0, author }: CommentCardProps) {
     return (
         <div className="flex gap-3 w-full">
 
@@ -76,7 +72,10 @@ export default function CommentCard({ user_id, content, created_at, likes=0, aut
                         >
                             <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path>
                         </svg>
-                        {isLogged && (<span className="group-hover:text-red-600 text-xs">0</span>)} {/* conteggio likes!! */}
+                        {/* Mostra solo se likes > 0 */}
+                        {likes > 0 && (
+                            <span className="group-hover:text-red-600 text-xs">{likes}</span>
+                        )}
                     </button>
                 </footer>
 

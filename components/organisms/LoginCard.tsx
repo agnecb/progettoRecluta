@@ -14,21 +14,19 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 
 interface LoginCardProps {
-  onLoginSuccess: (tempToken: string) => void;
+  onLoginSuccess: (username: string, password: string) => Promise<void>;
 }
 
 export default function LoginCard({ onLoginSuccess }: LoginCardProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // Chiamata API per login: username + password
-    // L'API restituisce un token momentaneo
-    // Qui metti il fetch reale
-    const mockToken = "TEMP_TOKEN_123";
-    onLoginSuccess(mockToken);
+    setLoading(true);
+    await onLoginSuccess(username, password);
+    setLoading(false);
   };
 
   return (
@@ -65,28 +63,32 @@ export default function LoginCard({ onLoginSuccess }: LoginCardProps) {
                 className="bg-background border-gray-300/20"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                minLength={8}
                 required
               />
             </div>
           </div>
-          <Button type="submit" className="w-full my-4 rounded-3xl bg-blue-500 hover:bg-blue-600">
-            Continua
-          </Button>
 
-          <CardFooter className="flex-col gap-2">
-            <div className="text-center mt-2">
-              <CardDescription className="py-0">
-                Non hai un account?
-                <a
-                  href="/signup"
-                  className="px-1 inline-block text-sm underline-offset-4 hover:underline font-bold text-blue-500"
-                >
-                  Registrati
-                </a>
-              </CardDescription>
-            </div>
-          </CardFooter>
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full my-4 rounded-3xl bg-blue-500 hover:bg-blue-600"
+          >
+            {loading ? "Attendere..." : "Continua"}
+          </Button>
         </form>
+
+        <CardFooter className="flex-col gap-2 text-center">
+          <CardDescription>
+            Non hai un account?
+            <a
+              href="/signup"
+              className="px-1 inline-block text-sm underline-offset-4 hover:underline font-bold text-blue-500"
+            >
+              Registrati
+            </a>
+          </CardDescription>
+        </CardFooter>
       </CardContent>
     </Card>
   );

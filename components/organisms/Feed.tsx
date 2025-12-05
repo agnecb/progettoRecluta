@@ -8,8 +8,8 @@ interface Post {
     user_id: string;
     content: string;
     created_at: string;
-    likes?: number;
-    comments?: number;
+    likes: number;
+    comments: number;
     author: { id: string; username: string };
 }
 

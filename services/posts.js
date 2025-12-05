@@ -1,12 +1,11 @@
 import { apiFetch } from "../lib/api";
+import { authFetch } from "@/services/auth";
 
 // ========== POSTS API ==========
 
 // GET /posts  → Lista post --> funziona (feed)
-export async function getPosts(userId) {
-    const query = userId ? `?user_id=${userId}` : "";
-    const data = await apiFetch(`/posts${query}`);
-
+export async function getPosts() {
+    const data = await apiFetch(`/posts`);
     return data.items.map(post => ({
         id: post.id,
         content: post.content,
@@ -25,7 +24,6 @@ export async function getPosts(userId) {
 // GET /posts/{id} → Post singolo --> funziona
 export async function getPost(id) {
     const post = await apiFetch(`/posts/${id}`);
-
     return {
         id: post.id,
         user_id: post.user_id,
@@ -64,83 +62,25 @@ export async function getUserPostsCount(user_id) {
 
 // POST /posts → Creazione nuovo post
 export async function createPost(postData) {
-    const post = await apiFetch('/posts', {
+    return authFetch('/posts', {
         method: 'POST',
-        body: JSON.stringify({
-            content: postData.content,
-            user_id: postData.user_id
-        })
-    });
-
-    return {
-        id: post.id,
-        content: post.content,
-        created_at: post.created_at,
-        user_id: post.user_id,
-        author: post.user ? {
-            id: post.user.id,
-            username: post.user.username
-        } : undefined
-    };
-}
-
-// versione con token --> helper che effettua richiesta HTTP post
-/*
-export function createPost(postData, token) {
-    return apiFetch('/posts', {
-        method: 'POST',
-        body: JSON.stringify({
-            user_id: postData.user_id,
-            content:postData.content
-        }),
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
+        body: JSON.stringify(postData),
     });
 }
-*/
 
 
-
-// PATCH /posts/{id} → Aggiornamento post
-export async function updatePost(id, content) {
-    const post = await apiFetch(`/posts/${id}`, {
+// PATCH /posts/{id} → Aggiornamento post --> fallisce senza autenticazione!! giustamente
+export async function updatePost(id, updateData) {
+    return authFetch(`/posts/${id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ content })
+        body: JSON.stringify(updateData),
     });
-
-    return {
-        id: post.id,
-        content: post.content,
-        created_at: post.created_at,
-        user_id: post.user_id,
-        author: post.user ? {
-            id: post.user.id,
-            username: post.user.username
-        } : undefined
-    };
 }
+
 
 // DELETE /posts/{id}
 export async function deletePost(id) {
-    return apiFetch(`/posts/${id}`, {
-        method: "DELETE"
+    return authFetch(`/posts/${id}`, {
+        method: 'DELETE',
     });
 }
-
-// creo un helper per mappare il post correttamente
-function mapPost(post) {
-    return {
-        id: post.id,
-        content: post.content,
-        created_at: post.created_at,
-        user_id: post.user_id,
-        author: post.users ? {
-            id: post.users.id,
-            username: post.users.username
-        } : undefined
-    };
-}
-
-// creo un helper centralizzato per caricare i post dal backend
-

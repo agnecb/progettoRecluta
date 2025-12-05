@@ -1,7 +1,8 @@
 import { apiFetch } from "../lib/api";
 import { getUserPostsCount } from "./posts";
 import { getUserLikesCount } from "./likes";
-import { getUserCommentsCount } from "./comments";
+import { getCommentsCountByUser } from "./comments";
+import { authFetch } from "./auth";
 
 // ========== USERS API ==========
 
@@ -38,16 +39,16 @@ export async function getUser(id) {
 
 // GET /users?q=username --> per recuperare le informazioni di un utente dato l'username --> funziona
 export async function getUserByUsername(username) {
-  const data = await apiFetch(`/users?q=${username}`);
-  if (!data.items || data.items.length === 0) return null;
-  const u = data.items[0];
-  return {
-    id: u.id,
-    username: u.username,
-    email: u.email,
-    bio: u.bio,
-    created_at: u.created_at
-  };
+    const data = await apiFetch(`/users?q=${username}`);
+    if (!data.items || data.items.length === 0) return null;
+    const u = data.items[0];
+    return {
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        bio: u.bio,
+        created_at: u.created_at
+    };
 }
 
 // funziona! posso usarla anche in profile!!!
@@ -55,7 +56,7 @@ export async function getUserStats(user_id) {
     const [posts, likes, comments] = await Promise.all([
         getUserPostsCount(user_id),
         getUserLikesCount(user_id),
-        getUserCommentsCount(user_id)
+        getCommentsCountByUser(user_id)
     ]);
 
     return { posts, likes, comments };
@@ -77,9 +78,12 @@ export async function createUser({ username, email, password }) {
 
 // PATCH /users/{id} → Aggiornamento utente
 export async function updateUser(id, updateData) {
-    return apiFetch(`/users/${id}`, {
+    return authFetch(`/users/${id}`, {
         method: "PATCH",
-        body: JSON.stringify(updateData)
+        body: JSON.stringify(updateData),
+        headers: {
+            "Content-Type": "application/json",
+        },
     });
 }
 

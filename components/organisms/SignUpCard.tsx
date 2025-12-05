@@ -18,6 +18,10 @@ export default function SignUpCard({ onSubmit }: { onSubmit: (data: any) => void
 
     function handleSubmit(e: any) {
         e.preventDefault();
+        if (form.password !== form.confirm) {
+            alert("Le password non coincidono");
+            return;
+        }
         onSubmit(form);
     }
 
@@ -50,7 +54,7 @@ export default function SignUpCard({ onSubmit }: { onSubmit: (data: any) => void
 
                     <div className="grid gap-2">
                         <Label>Password</Label>
-                        <Input id="password" type="password" placeholder="••••••••" className="bg-background border-gray-300/20"  
+                        <Input id="password" type="password" placeholder="••••••••" className="bg-background border-gray-300/20"
                             value={form.password}
                             minLength={8}
                             onChange={(e) =>
@@ -62,7 +66,7 @@ export default function SignUpCard({ onSubmit }: { onSubmit: (data: any) => void
 
                     <div className="grid gap-2">
                         <Label>Conferma Password</Label>
-                        <Input id="password" type="password" placeholder="••••••••" className="bg-background border-gray-300/20"  
+                        <Input id="password" type="password" placeholder="••••••••" className="bg-background border-gray-300/20"
                             minLength={8}
                             value={form.confirm}
                             onChange={(e) =>

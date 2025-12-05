@@ -12,6 +12,10 @@ import { getLikes } from "@/services/likes";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import MobileDashboard from "@/components/molecules/MobileDashboard";
+import MobileAuthTopBar from "@/components/molecules/MobileAuthTopBar";
+import MobileAuthBottomBar from "@/components/molecules/MobileAuthBottomBar";
 
 interface Post {
     id: string;
@@ -45,14 +49,13 @@ function formatJoinDate(dateString: string) {
 export default function UserProfilePage() {
     // prendo username dall'url dinamico
     const { username } = useParams() as { username: string };
+    const { isAuthenticated } = useAuth();
 
     const [user, setUser] = useState<User | null>(null);
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [stats, setStats] = useState<{ posts: number; likes: number; comments: number } | null>(null);
-
-    const MOCK_LOGGED = true;
 
     useEffect(() => {
         async function loadData() {
@@ -90,7 +93,7 @@ export default function UserProfilePage() {
                         };
                     })
                 );
-                setPosts(postsWithCounts.reverse());
+                setPosts(postsWithCounts);
 
             } catch (err: any) {
                 setError(err.message || "Errore nel caricamento");
@@ -106,15 +109,22 @@ export default function UserProfilePage() {
     if (!user) return <p className="text-center py-10">Utente non trovato</p>;
 
     return (
-        <div className="container max-w-5xl mx-auto min-h-screen">
-            <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen text-foreground bg-background">
-                {/* SIDEBAR */}
-                <div className="hidden md:block w-72">
-                    {MOCK_LOGGED ? <Sidebar /> : <AuthSidebar />}
+        <div className="container max-w-5xl mx-auto min-h-screen lg:pb-16">
+            <div className="md:hidden">
+                {isAuthenticated && <MobileDashboard />}
+                {!isAuthenticated && <MobileAuthTopBar />}
+                {!isAuthenticated && <MobileAuthBottomBar />}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen">
+
+                {/* A SINISTRA: sidebar dinamica */}
+                <div className="hidden md:block w-72 h-full">
+                    {isAuthenticated ? <Sidebar /> : <AuthSidebar />}
                 </div>
 
-                {/* MAIN PROFILE */}
-                <div className="min-h-screen py-6">
+
+                {/* profilo */}
+                <div className={`min-h-screen py-6 pb-20` + (!isAuthenticated ? " pt-20 md:pt-6" : "")}>
                     <div className="container mx-4 max-w-5xl w-full">
                         {/* HEADER */}
                         <div className="flex items-center gap-2 mb-4">

@@ -1,64 +1,100 @@
-import { apiFetch } from "../lib/api"; // oppure usa fetch nativo
+import { apiFetch } from "@/lib/api";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL;
+/* AUTH FETCH  */
+/* funzione dedicata che estende la apiFetch per l'autenticazione
+ * authFetch = apiFetch + token JWT automatico
+ * Usa sessionStorage.getItem("authToken")
+ */
+export function authFetch(path, options = {}) {
+    const token = typeof window !== "undefined"
+        ? sessionStorage.getItem("authToken")
+        : null;
 
-/* --------------------------
-    SIGNUP STEP 1 
-   /auth/register
--------------------------- */
-export async function registerUser({ username, email, password }) {
-    return apiFetch("/auth/register", {
-        method: "POST",
-        body: JSON.stringify({ username, email, password }),
+    return apiFetch(path, {
+        ...options,
+        headers: {
+            ...(options.headers || {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        }
     });
 }
 
-/* --------------------------
-    SIGNUP STEP 2 
-    /auth/otp/setup
--------------------------- */
-export async function setupOtp() {
-    return apiFetch("/auth/otp/setup", {
-        method: "GET",
-    });
-}
 
-/* --------------------------
-   LOGIN STEP 1 
-   /auth/login
--------------------------- */
-export async function loginUser({ username, password }) {
+/* ----- AUTH ENDPOINTS ----- */
+
+/* LOGIN FASE 1 - Richiede username + password
+ * Ritorna { temp_token } se OTP abilitata
+ */
+export async function login(username, password) {
     return apiFetch("/auth/login", {
         method: "POST",
         body: JSON.stringify({ username, password }),
     });
 }
 
-/* --------------------------
-   LOGIN STEP 2 
-   /auth/verify-otp
--------------------------- */
-export async function verifyOtp({ temp_token, otp_token }) {
+/**
+ * LOGIN FASE 2 - Verifica OTP
+ * Riceve temp_token e codice OTP
+ * Ritorna access_token (JWT finale)
+ */
+export async function verifyOtp(tempToken, otpCode) {
     return apiFetch("/auth/verify-otp", {
         method: "POST",
-        body: JSON.stringify({ temp_token, otp_token }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            temp_token: tempToken,
+            otp_token: otpCode,
+        }),
     });
 }
 
-/* --------------------------
-   /auth/logout
--------------------------- */
-export async function logoutUser() {
-    return apiFetch("/auth/logout", {
+/**
+ * REGISTRAZIONE
+ */
+export async function signup({ username, email, password }) {
+    return apiFetch("/auth/register", {
         method: "POST",
+        body: JSON.stringify({ username, email, password }),
     });
 }
 
-/* --------------------------
-   /auth/me
--------------------------- */
-export async function getMe() {
-    return apiFetch("/auth/me", {
+/**
+ * SETUP OTP (recupera QR code, secret, ecc.)
+ */
+export async function setupOtp() {
+    return authFetch("/auth/otp/setup", {
         method: "GET",
     });
+}
+
+/**
+ * STATO OTP (attiva/disattiva)
+ */
+export function getOtpStatus() {
+    return authFetch("/auth/otp/status", {
+        method: "GET",
+    });
+}
+
+/**
+ * GET CURRENT USER (richiede JWT)
+ */
+export async function getMe() {
+    return authFetch("/auth/me", {
+        method: "GET",
+    });
+}
+
+/**
+ * LOGOUT
+ * Rimuove il token e chiama l'endpoint /auth/logout
+ */
+export function logout() {
+    // Backend logout
+    apiFetch("/auth/logout", { method: "POST" }).catch(() => { });
+
+    // Logout locale
+    if (typeof window !== "undefined") {
+        sessionStorage.removeItem("authToken");
+    }
 }

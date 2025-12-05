@@ -12,63 +12,71 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { verifyOtp } from "@/services/auth";
+import { useRouter } from "next/navigation";
 
-interface OTPCardProps {
-  tempToken: string | null;
+interface OTPLoginCardProps {
+  tempToken: string;
   onBack: () => void;
 }
 
-export default function OTPCard({ tempToken, onBack }: OTPCardProps) {
+export default function OTPLoginCard({ tempToken, onBack }: OTPLoginCardProps) {
   const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
 
-    // Chiamata API per OTP: invii otp + tempToken
-    // Ricevi token di sessione definitivo
-    console.log("OTP inviato:", otp, "con token temporaneo:", tempToken);
-    // Qui fare redirect / salvare sessione
+    try {
+      const res = await verifyOtp(tempToken, otp);
+
+      login(res.token, res.user);
+      router.push("/");
+
+    } catch (err: any) {
+      alert(err.message || "OTP errato");
+    }
+
+    setLoading(false);
   };
 
   return (
     <Card className="w-full max-w-md bg-card text-card-foreground border-gray-300/20">
       <CardHeader className="text-center">
         <CardTitle className="font-bold text-2xl">Verifica OTP</CardTitle>
-        <CardDescription className="py-0">
+        <CardDescription className="text-gray-400">
           Inserisci il codice OTP da Google Authenticator
         </CardDescription>
       </CardHeader>
 
       <CardContent>
         <form onSubmit={handleSubmit}>
-          <div className="flex flex-col gap-6">
-            <div className="grid gap-2">
-              <Label htmlFor="otp_token">Codice OTP</Label>
-              <Input
-                id="otp_token"
-                type="text"
-                placeholder="123456"
-                className="bg-background border-gray-300/20"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                required
-              />
-              <p className="text-sm text-gray-400">
-                Inserisci il codice a 6 cifre da Google Authenticator
-              </p>
-            </div>
+          <div className="grid gap-2">
+            <Label htmlFor="otp">Codice OTP</Label>
+            <Input
+              id="otp"
+              type="text"
+              placeholder="123456"
+              className="bg-background border-gray-300/20"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              required
+            />
+            <p className="text-xs text-gray-400">
+              Inserisci il codice a 6 cifre da Google Authenticator
+            </p>
           </div>
 
-          <CardFooter className="flex-col gap-2 mt-4">
-            <Button type="submit" className="w-full rounded-3xl bg-blue-500 hover:bg-blue-600">
-              Verifica e accedi
+          <CardFooter className="flex flex-col gap-2 mt-4">
+            <Button type="submit" disabled={loading} className="w-full mt-2 rounded-3xl bg-blue-500 hover:bg-blue-600">
+              {loading ? "Verifica..." : "Verifica e Accedi"}
             </Button>
 
-            <Button
-              type="button"
-              onClick={onBack}
-              className="w-full rounded-3xl bg-card hover:bg-background"
-            >
+            <Button type="button" onClick={onBack} className="w-full rounded-3xl bg-card hover:bg-background">
               Torna indietro
             </Button>
           </CardFooter>

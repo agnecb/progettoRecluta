@@ -1,4 +1,5 @@
 import { apiFetch } from "../lib/api";
+import { authFetch } from "./auth";
 
 // ------------------------------------------------------------
 // GET /likes  → lista likes (o conteggio) 
@@ -16,7 +17,6 @@ export async function getLikesList(postId) {
     const data = await apiFetch(`/likes${query}`);
     return data.items;
 }
-
 
 // GET /likes filtrato per user_id (conteggio) --> funziona
 export async function getUserLikesCount(user_id) {
@@ -41,15 +41,10 @@ export async function getUserLikedPostIds(user_id) {
 // POST /likes  → metti like a un post (idempotente) 
 // body: { post_id }
 // ------------------------------------------------------------
-export async function likePost(postId, token) {
-    return apiFetch("/likes", {
+export async function likePost(postId) {
+    return authFetch("/likes", {
         method: "POST",
-        headers: {
-            Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            post_id: postId
-        })
+        body: JSON.stringify({ post_id: postId })
     });
 }
 
@@ -57,14 +52,22 @@ export async function likePost(postId, token) {
 // DELETE /likes  → rimuove like dell’utente autenticato
 // body: { post_id }
 // ------------------------------------------------------------
-export async function unlikePost(postId, token) {
-    return apiFetch("/likes", {
+export async function unlikePost(postId) {
+    return authFetch("/likes", {
         method: "DELETE",
-        headers: {
-            Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            post_id: postId
-        })
+        body: JSON.stringify({ post_id: postId })
     });
+}
+
+export async function getLikeStatus(postId, userId) {
+    // 1) total count
+    const total = await authFetch(`/likes?post_id=${postId}&count=true`);
+
+    // 2) user liked?
+    const userRes = await authFetch(`/likes?post_id=${postId}&user_id=${userId}&count=true`);
+
+    return {
+        like_count: total.count,
+        liked: userRes.count > 0
+    };
 }

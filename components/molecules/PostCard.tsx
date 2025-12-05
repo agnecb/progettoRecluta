@@ -8,8 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
+import { updatePost, deletePost } from "@/services/posts";
+import { useAuth } from "@/context/AuthContext";
+import { getLikeStatus, likePost, unlikePost } from "@/services/likes";
+import { useEffect } from "react";
 
-const CURRENT_USER_ID = "a3bc9093-a34c-4355-a9d1-899d6fed6ea9"; // <--- sostituisci con l'id reale del logged user
 
 // formattazione data
 function formatDate(dateString: string) {
@@ -40,7 +43,6 @@ export function formatMarkdown(text: string) {
     return formatted;
 }
 
-
 interface PostCardProps {
     id: string;
     user_id: string;
@@ -48,22 +50,84 @@ interface PostCardProps {
     created_at: string;
     likes?: number;
     comments?: number;
-    author: {id: string; username: string;};
+    author: { id: string; username: string; };
 }
 
-export default function PostCard({ id, user_id, content, created_at, likes, comments, author }: PostCardProps) {
+export default function PostCard({ id, user_id, content, created_at, likes = 0, comments = 0, author }: PostCardProps) {
     const router = useRouter();
-    //const isOwner = true;
-    const isOwner = author.id === CURRENT_USER_ID;
+
+    const { user } = useAuth();
+    const isOwner = user?.id === author.id;
+
+    const [hasLiked, setHasLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(likes);
+
 
     const [openEdit, setOpenEdit] = useState(false);
     const [draft, setDraft] = useState(content);
+    const [postContent, setPostContent] = useState(content);
+    const isOwnPost = user?.id === author.id;
 
-    const handleSave = () => {
-        console.log("Post aggiornato:", draft);
-        setOpenEdit(false);
-        // qui poi fai chiamata API per aggiornare il post
+    const handleSave = async () => {
+        try {
+            await updatePost(id, { content: draft });
+            setPostContent(draft);
+            setOpenEdit(false);
+        } catch (err: any) {
+            console.error("Errore aggiornando post:", err.message || err);
+        }
     };
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.stopPropagation(); // evita il click sul card intero
+        if (!confirm("Sei sicuro di voler eliminare questo post?")) return;
+
+        try {
+            await deletePost(id); // authFetch gestisce token
+            alert("Post eliminato!");
+            router.refresh(); // oppure aggiorna la lista dei post genitore
+        } catch (err: any) {
+            console.error("Errore eliminando il post:", err.message || err);
+            alert(err.message || "Errore eliminando il post");
+        }
+    };
+    const handleLike = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!user) {
+            //alert("Devi essere loggato per mettere like");
+            return;
+        }
+        try {
+            if (hasLiked) {
+                await unlikePost(id);
+                setHasLiked(false);
+                setLikeCount(likeCount - 1);
+            } else {
+                await likePost(id);
+                setHasLiked(true);
+                setLikeCount(likeCount + 1);
+            }
+        } catch (err: any) {
+            console.error("Errore like:", err.message || err);
+            alert("Errore nel mettere like");
+        }
+    };
+    useEffect(() => {
+        if (!user) return;
+        let active = true;
+        const loadStatus = async () => {
+            try {
+                const status = await getLikeStatus(id, user.id);
+                if (active) {
+                    setHasLiked(status.liked);
+                    setLikeCount(status.like_count);
+                }
+            } catch (err) {
+                console.error("Errore caricamento stato like", err);
+            }
+        };
+        loadStatus();
+        return () => { active = false };
+    }, [user, id]);
 
     return (
         <Card
@@ -75,10 +139,7 @@ export default function PostCard({ id, user_id, content, created_at, likes, comm
                 <>
                     {/* DELETE — in alto */}
                     <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            console.log("Delete", id);
-                        }}
+                        onClick={handleDelete}
                         title="Elimina post"
                         className="absolute top-3 right-3 
                                     p-2 
@@ -184,8 +245,7 @@ export default function PostCard({ id, user_id, content, created_at, likes, comm
 
 
             <CardContent className="my-0 py-0">
-                <p
-                    className="text-md text-foreground my-0"
+                <p className="text-md text-foreground my-0"
                     dangerouslySetInnerHTML={{ __html: formatMarkdown(content) }}
                 ></p>
             </CardContent>
@@ -193,10 +253,8 @@ export default function PostCard({ id, user_id, content, created_at, likes, comm
             <CardFooter className="flex gap-4 my-0 py-0">
                 {/* Like */}
                 <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        console.log("Like clicked");
-                    }}
+                    onClick={handleLike}
+                    disabled={isOwnPost}
                     className="group flex items-center gap-1 text-gray-500 focus:outline-none"
                 >
                     <svg
@@ -204,24 +262,24 @@ export default function PostCard({ id, user_id, content, created_at, likes, comm
                         width="18"
                         height="18"
                         viewBox="0 0 24 24"
-                        fill="none"
+                        fill={hasLiked ? "currentColor" : "none"}
                         stroke="currentColor"
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="lucide lucide-heart group-hover:text-red-600"
+                        className={hasLiked ? "text-red-600" : "group-hover:text-red-600"}
                         aria-hidden="true"
                     >
                         <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path>
                     </svg>
-                    <span>{likes}</span>
+                    {likeCount > 0 && <span>{likeCount}</span>}
                 </button>
 
                 {/* Comment */}
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
-                        console.log("Comment clicked");
+                        router.push(`/post/${id}`);
                     }}
                     className="group flex items-center gap-1 text-gray-500 focus:outline-none"
                 >
@@ -240,7 +298,7 @@ export default function PostCard({ id, user_id, content, created_at, likes, comm
                     >
                         <path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"></path>
                     </svg>
-                    <span>{comments}</span>
+                    {comments > 0 && <span>{comments}</span>}
                 </button>
             </CardFooter>
         </Card>
