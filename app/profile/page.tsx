@@ -13,6 +13,7 @@ import { getUser } from "@/services/users";
 import MobileDashboard from "@/components/molecules/MobileDashboard";
 import MobileAuthTopBar from "@/components/molecules/MobileAuthTopBar";
 import MobileAuthBottomBar from "@/components/molecules/MobileAuthBottomBar";
+import FloatingNewPostButton from "@/components/atoms/FloatingButton";
 
 interface Post {
   id: string;
@@ -106,17 +107,18 @@ export default function ProfilePage() {
   if (authLoading) return <p className="text-center py-10">Caricamento...</p>;
 
   return (
-    <div className="container max-w-5xl mx-auto min-h-screen lg:pb-16">
+    <div className="container max-w-5xl mx-auto min-h-screen">
       <div className="md:hidden">
-        {user && <MobileDashboard />}
-        {!user && <MobileAuthTopBar />}
-        {!user && <MobileAuthBottomBar />}
+        {authUser && <MobileDashboard />}
+        {!authUser && <MobileAuthTopBar />}
+        {!authUser && <MobileAuthBottomBar />}
       </div>
+      <FloatingNewPostButton />
       <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen">
 
         {/* A SINISTRA: sidebar dinamica */}
         <div className="hidden md:block w-72 h-full">
-          {user ? <Sidebar /> : <AuthSidebar />}
+          {authUser ? <Sidebar /> : <AuthSidebar />}
         </div>
 
 

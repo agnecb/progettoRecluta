@@ -1,4 +1,4 @@
-// file cheserve a estendere i tipi di NextAuth con le proprietà custom (accessToken, requiresOtp, tempToken)
+// file che serve a estendere i tipi di NextAuth con le proprietà custom (accessToken, requiresOtp, tempToken)
 import "next-auth";
 import "next-auth/jwt";
 

@@ -16,6 +16,7 @@ import { useAuth } from "@/context/AuthContext";
 import MobileDashboard from "@/components/molecules/MobileDashboard";
 import MobileAuthTopBar from "@/components/molecules/MobileAuthTopBar";
 import MobileAuthBottomBar from "@/components/molecules/MobileAuthBottomBar";
+import FloatingNewPostButton from "@/components/atoms/FloatingButton";
 
 interface Post {
     id: string;
@@ -109,12 +110,13 @@ export default function UserProfilePage() {
     if (!user) return <p className="text-center py-10">Utente non trovato</p>;
 
     return (
-        <div className="container max-w-5xl mx-auto min-h-screen lg:pb-16">
+        <div className="container max-w-5xl mx-auto min-h-screen">
             <div className="md:hidden">
                 {isAuthenticated && <MobileDashboard />}
                 {!isAuthenticated && <MobileAuthTopBar />}
                 {!isAuthenticated && <MobileAuthBottomBar />}
             </div>
+            <FloatingNewPostButton />
             <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen">
 
                 {/* A SINISTRA: sidebar dinamica */}

@@ -1,5 +1,6 @@
 "use client"
 
+import FloatingNewPostButton from "@/components/atoms/FloatingButton";
 import MobileAuthBottomBar from "@/components/molecules/MobileAuthBottomBar";
 import MobileAuthTopBar from "@/components/molecules/MobileAuthTopBar";
 import MobileDashboard from "@/components/molecules/MobileDashboard";
@@ -14,12 +15,13 @@ export default function NewPostPage() {
     if (loading) return null; // evita flash
 
     return (
-        <div className="container max-w-5xl mx-auto min-h-screen lg:pb-16">
+        <div className="container max-w-5xl mx-auto min-h-screen">
             <div className="md:hidden">
                 {user && <MobileDashboard />}
                 {!user && <MobileAuthTopBar />}
                 {!user && <MobileAuthBottomBar />}
             </div>
+            <FloatingNewPostButton />
             <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen">
 
                 {/* A SINISTRA: sidebar dinamica */}

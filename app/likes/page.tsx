@@ -11,6 +11,7 @@ import AuthSidebar from "@/components/organisms/AuthSidebar";
 import MobileDashboard from "@/components/molecules/MobileDashboard";
 import MobileAuthBottomBar from "@/components/molecules/MobileAuthBottomBar";
 import MobileAuthTopBar from "@/components/molecules/MobileAuthTopBar";
+import FloatingNewPostButton from "@/components/atoms/FloatingButton";
 
 interface Post {
   id: string;
@@ -88,12 +89,13 @@ export default function LikesPage() {
     return <p className="text-center py-10">Caricamento...</p>;
 
   return (
-    <div className="container max-w-5xl mx-auto min-h-screen lg:pb-16">
+    <div className="container max-w-5xl mx-auto min-h-screen">
       <div className="md:hidden">
         {user && <MobileDashboard />}
         {!user && <MobileAuthTopBar />}
         {!user && <MobileAuthBottomBar />}
       </div>
+      <FloatingNewPostButton />
       <div className="grid grid-cols-1 md:grid-cols-[18rem_1fr] gap-6 min-h-screen">
 
         {/* A SINISTRA: sidebar dinamica */}
